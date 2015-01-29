@@ -16,19 +16,26 @@ func index(w http.ResponseWriter, r *http.Request) {
 	y := strings.Index(m,"&")
 	username := m[x+1:y]
 	ls := m[y+1:]
-	fmt.Println(username)
+	
 	x = strings.Index(ls,"=")
 	y = strings.Index(ls,"&")
 	email := ls[x+1:y]
 	ts := strings.Index(email,"%40")
 	email = email[:ts]+"@"+email[ts+3:]
-	fmt.Println(email)
+	
 	m = ls[y+1:]
 	x = strings.Index(m,"=")
 	password:= m[x+1:]
-	fmt.Println(password)
-	_, _ = createuser.CreateNewuser(username,email,password)
-	fmt.Fprintf(w, "0")
+	
+	errcode, errcre := createuser.CreateNewuser(username,email,password)
+	if errcre != nil {
+		fmt.Println(errcre)
+	} else{
+		fmt.Println(username)
+		fmt.Println(email)
+		fmt.Println(password)
+	}	
+	fmt.Fprintf(w, string(errcode))
 }
 
 

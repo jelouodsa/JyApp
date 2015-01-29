@@ -4,6 +4,9 @@ import (
 	"fmt"
 	"os"
 	"encoding/xml"
+	"io/ioutil"
+	"strings"
+	"errors"
 )
 
 type Account struct {
@@ -26,6 +29,14 @@ func updateUserEntry(user Account) (error) {
     }
 	if _, err = file.WriteString(string(output)); err != nil {
 		return  err
+	}
+	file.Close()
+	file, err = os.OpenFile("userlist.us", os.O_APPEND|os.O_WRONLY, 0600)
+	if err != nil{
+		return err
+	}
+	if _, err = file.WriteString(string(user.Email)+"\n"); err != nil {
+    	return err
 	}
 	return nil
 }
@@ -54,16 +65,40 @@ func getUserId(off int) (int, error) {
 	return num, nil
 }
 
+func CheckAvail(username string, email string) (int, error){
+	asd, _ := os.Stat("users/"+string(username))
+	if asd != nil {
+		return -1, errors.New("Users exists")
+	}
+	f, err1 := os.Open("userlist.us")
+	if err1 != nil {			
+		return 0, err1
+	}
+	defer f.Close()
+	data, err2 := ioutil.ReadAll(f)
+	if err2 != nil {
+		return 0, err2
+	}
+	if strings.Contains(string(data), email) == true {
+		return -2, errors.New("Email id is already registered")
+	}
+	return 1, nil	
+}
 
-func CreateNewuser(username string, email string, password string) (int, error) {	
+
+func CreateNewuser(username string, email string, password string) (int, error) {
+	check, err1 := CheckAvail(username,email)
+	if err1 != nil {
+		return check, err1
+	}	
 	ids, err := getUserId(1)
 	if err != nil{
-		return -1, err
+		return -3, err
 	}
 	v := Account{Id : ids,Username : username,Email : email,Password : password}
 	if err = updateUserEntry(v); err != nil{
 		_,_ = getUserId(-1)
-		return -2, err
+		return -3, err
 	}
 	return 0, nil
 }
