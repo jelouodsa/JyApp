@@ -1,0 +1,1 @@
+This is the server side code of the Prayer App Candlelight developed for Jy NITC
