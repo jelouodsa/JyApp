@@ -27,19 +27,21 @@ func index(w http.ResponseWriter, r *http.Request) {
 	x = strings.Index(m,"=")
 	password:= m[x+1:]
 	
-	errcode, errcre := createuser.CreateNewuser(username,email,password)
+	_, errcre := createuser.CreateNewuser(username,email,password)
 	if errcre != nil {
 		fmt.Println(errcre)
+		fmt.Fprintf(w, errcre.Error())
 	} else{
 		fmt.Println(username)
 		fmt.Println(email)
 		fmt.Println(password)
-	}	
-	fmt.Fprintf(w, string(errcode))
+		fmt.Fprintf(w, "User created")
+	}
+	
 }
 
 
 func main() {
-	http.HandleFunc("/", index);
+	http.HandleFunc("/registeruser", index);
 	http.ListenAndServe(":8080", nil)
 }
