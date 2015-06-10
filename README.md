@@ -4,5 +4,5 @@ The source code of the Android App is in this repo
 
 https://github.com/melvinodsa/Candlelight
 
-before running the web server run :- go install github.com/jelouodsa/JyApp/createuser
+before running the web server run :- go install github.com/melvinodsa/JyApp/createuser
 then :- go run webserver.go
