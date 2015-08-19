@@ -22,7 +22,9 @@ func main() {
 	defer db.Close()
 	http.HandleFunc("/", hello)
 	http.HandleFunc("/registeruser", registeruser)
+	http.HandleFunc("/loginuser", loginuser)
 	http.HandleFunc("/registercommunity", registercommunity)
+	http.HandleFunc("/searchcommunity", searchcommunity)
 	http.ListenAndServe(":8080", nil)
 }
 
@@ -57,6 +59,35 @@ func registeruser(w http.ResponseWriter, r *http.Request) {
 		fmt.Println(email)
 		fmt.Println(password)
 		fmt.Fprintf(w, "User created")
+	}
+}
+
+func loginuser(w http.ResponseWriter, r *http.Request) {
+	body, _ := ioutil.ReadAll(r.Body)
+	m := string(body)
+	x := strings.Index(m,"=")
+	y := strings.Index(m,"&")
+	username := m[x+1:y]
+	m = m[y+1:]
+	x = strings.Index(m,"=")
+	password:= m[x+1:]
+	fmt.Println(password,username)
+	rows, err := db.Query("SELECT username FROM userlist WHERE( username=? AND password=?)", username, password )
+	if err != nil {
+		panic(err)
+		fmt.Fprintf(w, err.Error())
+	} else{
+		for rows.Next() {
+            var username string
+            if err := rows.Scan(&username); err != nil {
+							fmt.Println(err)
+            }
+            fmt.Printf("%s\n", username)
+						fmt.Fprintf(w, "User is good")
+    }
+    if err := rows.Err(); err != nil {
+			fmt.Println(err)
+    }
 	}
 }
 
@@ -97,5 +128,55 @@ func registercommunity(res http.ResponseWriter, req *http.Request) {
 	} else{
 		fmt.Println(privacy,country,state,name,city,admin)
 		fmt.Fprintf(res, "Community created")
+	}
+}
+func searchcommunity(res http.ResponseWriter, req *http.Request) {
+	body, _ := ioutil.ReadAll(req.Body)
+	m := string(body)
+	x := strings.Index(m,"=")
+	y := strings.Index(m,"&")
+	country := m[x+1:y]
+	country = strings.Replace(country, "+", "", -1)
+	country = strings.Replace(country, "%28", "(", -1)
+	country = strings.Replace(country, "%29", ")", -1)
+	m = m[y+1:]
+	x = strings.Index(m,"=")
+	y = strings.Index(m,"&")
+	state := m[x+1:y]
+	state = strings.Replace(state, "+", "", -1)
+	state = strings.Replace(state, "%28", "(", -1)
+	state = strings.Replace(state, "%29", ")", -1)
+	m = m[y+1:]
+	x = strings.Index(m,"=")
+	y = strings.Index(m,"&")
+	name := m[x+1:y]
+	name = strings.Replace(name, "+", "", -1)
+	name = strings.Replace(name, "%28", "(", -1)
+	name = strings.Replace(name, "%29", ")", -1)
+	m = m[y+1:]
+	x = strings.Index(m,"=")
+	city := m[x+1:]
+	city = strings.Replace(city, "+", "", -1)
+	myquery := "SELECT name, id, country, state, city FROM communities WHERE name LIKE '%"+name+"%'  OR country LIKE '%"+country+"%' OR state LIKE '%"+state+"%' OR city LIKE '%"+city+"%'";
+	rows, err := db.Query(myquery)
+	if err != nil {
+		fmt.Println(err)
+		fmt.Fprintf(res, err.Error())
+	}
+	defer rows.Close()
+	id := 0
+	for rows.Next() {
+		err := rows.Scan(&name, &id, &country, &state, &city)
+		if err != nil {
+			fmt.Println(err)
+      fmt.Fprintln(res,err)
+		}
+		fmt.Println(id, name, country, state, city)
+		fmt.Fprintln(res, id, name, country, state, city)
+	}
+	err = rows.Err()
+	if err != nil {
+		fmt.Println(err)
+    fmt.Fprintln(res, err)
 	}
 }
