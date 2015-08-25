@@ -171,8 +171,7 @@ func searchcommunity(res http.ResponseWriter, req *http.Request) {
 			fmt.Println(err)
       fmt.Fprintln(res,err)
 		}
-		fmt.Println(id, name, country, state, city)
-		fmt.Fprintln(res, id, name, country, state, city)
+		fmt.Fprintln(res, id, name, country, state, city, "@")
 	}
 	err = rows.Err()
 	if err != nil {
