@@ -71,7 +71,6 @@ func loginuser(w http.ResponseWriter, r *http.Request) {
 	m = m[y+1:]
 	x = strings.Index(m,"=")
 	password:= m[x+1:]
-	fmt.Println(password,username)
 	rows, err := db.Query("SELECT username FROM userlist WHERE( username=? AND password=?)", username, password )
 	if err != nil {
 		panic(err)
@@ -121,12 +120,26 @@ func registercommunity(res http.ResponseWriter, req *http.Request) {
 	x = strings.Index(m,"=")
 	admin := m[x+1:]
 	admin = strings.Replace(admin, "+", " ", -1)
-	_, err := db.Query("INSERT INTO communities (name,admin,privacy,country,state,city) VALUES( ?, ?, ?, ?, ?, ? )", name, admin, privacy, country, state, city )
+	doneFlag := false
+	rows, err := db.Query("SELECT username FROM userlist WHERE( username=?)", username )
 	if err != nil {
-		fmt.Println(err)
-		fmt.Fprintf(res, err.Error())
+		panic(err)
+		fmt.Fprintf(w, err.Error())
 	} else{
-		fmt.Println(privacy,country,state,name,city,admin)
+		if rows.Next() {
+			_, err := db.Query("INSERT INTO communities (name,admin,privacy,country,state,city) VALUES( ?, ?, ?, ?, ?, ? )", name, admin, privacy, country, state, city )
+			if err != nil {
+				fmt.Println(err)
+				fmt.Fprintf(res, err.Error())
+			} else{
+				doneFlag = true
+			}
+    }
+    if err := rows.Err(); err != nil {
+			fmt.Println(err)
+    }
+	}
+	if doneFlag {
 		fmt.Fprintf(res, "Community created")
 	}
 }
