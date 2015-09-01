@@ -3,8 +3,6 @@ package main
 import (
 	"net/http"
 	"fmt"
-	"io/ioutil"
-	"strings"
 	"database/sql"
   _ "github.com/go-sql-driver/mysql"
 	"github.com/melvinodsa/JyApp/users"
@@ -48,5 +46,5 @@ func registercommunity(res http.ResponseWriter, req *http.Request) {
 }
 
 func searchcommunity(res http.ResponseWriter, req *http.Request) {
-	communities.SearchCommunity(res, req)
+	communities.SearchCommunity(res, req, db)
 }
