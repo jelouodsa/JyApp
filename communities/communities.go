@@ -49,6 +49,7 @@ func RegisterCommunity(res http.ResponseWriter, req *http.Request, db *sql.DB) {
 	} else{
 		if rows.Next() {
 			_, err := db.Query("INSERT INTO communities (name,admin,privacy,country,state,city) VALUES( ?, ?, ?, ?, ?, ? )", name, admin, privacy, country, state, city )
+			_, err := db.Query("INSERT INTO communitymember (name,privilage,username) VALUES( ?, ?, ? )", name, 0, admin )
 			if err != nil {
 				fmt.Println(err)
 				fmt.Fprintf(res, err.Error())
