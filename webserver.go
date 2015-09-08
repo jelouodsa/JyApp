@@ -25,7 +25,12 @@ func main() {
 	http.HandleFunc("/loginuser", loginuser)
 	http.HandleFunc("/registercommunity", registercommunity)
 	http.HandleFunc("/searchcommunity", searchcommunity)
+	http.HandleFunc("/joincommunity", joincommunity)
 	http.ListenAndServe(":8080", nil)
+}
+
+func joincommunity(w http.ResponseWriter, r *http.Request)  {
+	communities.JoinCommunity(w, r, db)
 }
 
 func registeruser(w http.ResponseWriter, r *http.Request) {

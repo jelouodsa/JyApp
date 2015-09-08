@@ -66,6 +66,29 @@ func RegisterCommunity(res http.ResponseWriter, req *http.Request, db *sql.DB) {
 	}
 }
 
+fuc JoinCommunity(res http.ResponseWriter, req *http.Request, db *sql.DB) {
+  body, _ := ioutil.ReadAll(req.Body)
+  m := string(body)
+  x := strings.Index(m,"=")
+  y := strings.Index(m,"&")
+  name := m[x+1:y]
+  name = strings.Replace(name, "+", "", -1)
+  name = strings.Replace(name, "%28", "(", -1)
+  name = strings.Replace(name, "%29", ")", -1)
+  m := m[y+1:]
+  x = strings.Index(ls,"=")
+	y = strings.Index(ls,"&")
+	email := ls[x+1:y]
+	ts := strings.Index(email,"%40")
+	email = email[:ts]+"@"+email[ts+3:]
+  _, err := db.Query("INSERT INTO communitymember (name,privilage,username) VALUES( ?, ?, ? )", name, 1, email )
+  if err != nil {
+		fmt.Println(err)
+		fmt.Fprintf(res, err.Error())
+	} else {
+    fmt.Println(res, "Joined community")
+  }
+}
 
 func SearchCommunity(res http.ResponseWriter, req *http.Request, db *sql.DB) {
 	body, _ := ioutil.ReadAll(req.Body)
