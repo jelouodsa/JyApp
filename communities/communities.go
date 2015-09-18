@@ -5,6 +5,7 @@ import (
   "fmt"
   "io/ioutil"
   "strings"
+  "strconv"
   "database/sql"
   _ "github.com/go-sql-driver/mysql"
 )
@@ -12,7 +13,8 @@ import (
 var err error
 
 func RegisterCommunity(res http.ResponseWriter, req *http.Request, db *sql.DB) {
-	body, _ := ioutil.ReadAll(req.Body)
+  id := 0
+  body, _ := ioutil.ReadAll(req.Body)
 	m := string(body)
 	x := strings.Index(m,"=")
 	y := strings.Index(m,"&")
@@ -48,11 +50,30 @@ func RegisterCommunity(res http.ResponseWriter, req *http.Request, db *sql.DB) {
 		fmt.Fprintf(res, err.Error())
 	} else{
 		if rows.Next() {
-			_, err := db.Query("INSERT INTO communities (name,admin,privacy,country,state,city) VALUES( ?, ?, ?, ?, ?, ? )", name, admin, privacy, country, state, city )
-			_, err := db.Query("INSERT INTO communitymember (name,privilage,username) VALUES( ?, ?, ? )", name, 0, admin )
+			_, err = db.Query("INSERT INTO communities (name,admin,privacy,country,state,city) VALUES( ?, ?, ?, ?, ?, ? )", name, admin, privacy, country, state, city )
+      myquery := "SELECT id FROM communities WHERE username=?";
+      rows, err := db.Query(myquery,admin)
+    	if err != nil {
+    		fmt.Println(err)
+    		fmt.Fprintf(res, err.Error())
+    	}
+    	defer rows.Close()
+    	for rows.Next() {
+    		err := rows.Scan(&id)
+    		if err != nil {
+    			fmt.Println(err)
+          fmt.Fprintln(res,err)
+    		}
+    	}
+    	err = rows.Err()
+    	if err != nil {
+    		fmt.Println(err)
+        fmt.Fprintln(res, err)
+    	}
+      _, err = db.Query("INSERT INTO communitymember (id,privilage,username) VALUES( ?, ?, ? )", id, 0, admin )
 			if err != nil {
 				fmt.Println(err)
-				fmt.Fprintf(res, err.Error())
+				fmt.Fprintf(res, err.Error()+"$")
 			} else{
 				doneFlag = true
 			}
@@ -62,31 +83,44 @@ func RegisterCommunity(res http.ResponseWriter, req *http.Request, db *sql.DB) {
     }
 	}
 	if doneFlag {
-    fmt.Fprintf(res, "Community created")
+    x := strconv.Itoa(id)
+    fmt.Fprintf(res, "Community created$"+x)
 	}
 }
 
-fuc JoinCommunity(res http.ResponseWriter, req *http.Request, db *sql.DB) {
+func JoinCommunity(res http.ResponseWriter, req *http.Request, db *sql.DB) {
   body, _ := ioutil.ReadAll(req.Body)
   m := string(body)
   x := strings.Index(m,"=")
   y := strings.Index(m,"&")
-  name := m[x+1:y]
-  name = strings.Replace(name, "+", "", -1)
-  name = strings.Replace(name, "%28", "(", -1)
-  name = strings.Replace(name, "%29", ")", -1)
-  m := m[y+1:]
-  x = strings.Index(ls,"=")
-	y = strings.Index(ls,"&")
-	email := ls[x+1:y]
-	ts := strings.Index(email,"%40")
-	email = email[:ts]+"@"+email[ts+3:]
-  _, err := db.Query("INSERT INTO communitymember (name,privilage,username) VALUES( ?, ?, ? )", name, 1, email )
+  id := m[x+1:y]
+  m = m[y+1:]
+  x = strings.Index(m,"=")
+	username := m[x+1:]
+  _, err := db.Query("INSERT INTO communitymember (id,privilage,username) VALUES( ?, ?, ? )", id, 1, username )
   if err != nil {
 		fmt.Println(err)
 		fmt.Fprintf(res, err.Error())
 	} else {
-    fmt.Println(res, "Joined community")
+    fmt.Fprintln(res, "Joined community")
+  }
+}
+
+func FollowCommunity(res http.ResponseWriter, req *http.Request, db *sql.DB) {
+  body, _ := ioutil.ReadAll(req.Body)
+  m := string(body)
+  x := strings.Index(m,"=")
+  y := strings.Index(m,"&")
+  id := m[x+1:y]
+  m = m[y+1:]
+  x = strings.Index(m,"=")
+	username := m[x+1:]
+  _, err := db.Query("INSERT INTO communitymember (id,privilage,username) VALUES( ?, ?, ? )", id, 2, username )
+  if err != nil {
+		fmt.Println(err)
+		fmt.Fprintf(res, err.Error())
+	} else {
+    fmt.Fprintln(res, "Followed community")
   }
 }
 
@@ -117,7 +151,7 @@ func SearchCommunity(res http.ResponseWriter, req *http.Request, db *sql.DB) {
 	x = strings.Index(m,"=")
 	city := m[x+1:]
 	city = strings.Replace(city, "+", "", -1)
-	myquery := "SELECT name, id, country, state, city FROM communities WHERE name LIKE '%"+name+"%'  OR country LIKE '%"+country+"%' OR state LIKE '%"+state+"%' OR city LIKE '%"+city+"%'";
+	myquery := "SELECT name, id, country, state, city FROM communities WHERE privacy =0 AND name LIKE '%"+name+"%'  AND country LIKE '%"+country+"%' AND state LIKE '%"+state+"%' AND city LIKE '%"+city+"%'";
 	rows, err := db.Query(myquery)
 	if err != nil {
 		fmt.Println(err)
