@@ -17,6 +17,9 @@ func RegisterUser(w http.ResponseWriter, r *http.Request, db *sql.DB) {
 	x := strings.Index(m,"=")
 	y := strings.Index(m,"&")
 	username := m[x+1:y]
+	username = strings.Replace(username, "+", " ", -1)
+	username = strings.Replace(username, "%28", "(", -1)
+	username = strings.Replace(username, "%29", ")", -1)
 	ls := m[y+1:]
 
 	x = strings.Index(ls,"=")
@@ -47,6 +50,9 @@ func LoginUser(w http.ResponseWriter, r *http.Request, db *sql.DB) {
 	x := strings.Index(m,"=")
 	y := strings.Index(m,"&")
 	username := m[x+1:y]
+	username = strings.Replace(username, "+", " ", -1)
+	username = strings.Replace(username, "%28", "(", -1)
+	username = strings.Replace(username, "%29", ")", -1)
 	m = m[y+1:]
 	x = strings.Index(m,"=")
 	password:= m[x+1:]

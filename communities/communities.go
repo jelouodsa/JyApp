@@ -24,34 +24,45 @@ func RegisterCommunity(res http.ResponseWriter, req *http.Request, db *sql.DB) {
 	y = strings.Index(m,"&")
 	country := m[x+1:y]
 	country = strings.Replace(country, "+", " ", -1)
+	country = strings.Replace(country, "%28", "(", -1)
+	country = strings.Replace(country, "%29", ")", -1)
 	m = m[y+1:]
 	x = strings.Index(m,"=")
 	y = strings.Index(m,"&")
 	state := m[x+1:y]
 	state = strings.Replace(state, "+", " ", -1)
+	state = strings.Replace(state, "%28", "(", -1)
+	state = strings.Replace(state, "%29", ")", -1)
 	m = m[y+1:]
 	x = strings.Index(m,"=")
 	y = strings.Index(m,"&")
 	name := m[x+1:y]
 	name = strings.Replace(name, "+", " ", -1)
+	name = strings.Replace(name, "%28", "(", -1)
+	name = strings.Replace(name, "%29", ")", -1)
 	m = m[y+1:]
 	x = strings.Index(m,"=")
 	y = strings.Index(m,"&")
 	city := m[x+1:y]
 	city = strings.Replace(city, "+", " ", -1)
+	city = strings.Replace(city, "%28", "(", -1)
+	city = strings.Replace(city, "%29", ")", -1)
 	m = m[y+1:]
 	x = strings.Index(m,"=")
 	admin := m[x+1:]
 	admin = strings.Replace(admin, "+", " ", -1)
+	admin = strings.Replace(admin, "%28", "(", -1)
+	admin = strings.Replace(admin, "%29", ")", -1)
 	doneFlag := false
-	rows, err := db.Query("SELECT username FROM userlist WHERE( username=?)", admin )
+  myQ := "SELECT username FROM userlist WHERE username=?"
+  rows, err := db.Query(myQ,admin)
 	if err != nil {
 		panic(err)
 		fmt.Fprintf(res, err.Error())
 	} else{
 		if rows.Next() {
 			_, err = db.Query("INSERT INTO communities (name,admin,privacy,country,state,city) VALUES( ?, ?, ?, ?, ?, ? )", name, admin, privacy, country, state, city )
-      myquery := "SELECT id FROM communities WHERE username=?";
+      myquery := "SELECT id FROM communities WHERE admin=?"
       rows, err := db.Query(myquery,admin)
     	if err != nil {
     		fmt.Println(err)
@@ -84,7 +95,7 @@ func RegisterCommunity(res http.ResponseWriter, req *http.Request, db *sql.DB) {
 	}
 	if doneFlag {
     x := strconv.Itoa(id)
-    fmt.Fprintf(res, "Community created$"+x)
+    fmt.Fprintf(res, "Community created  "+x)
 	}
 }
 
@@ -130,27 +141,29 @@ func SearchCommunity(res http.ResponseWriter, req *http.Request, db *sql.DB) {
 	x := strings.Index(m,"=")
 	y := strings.Index(m,"&")
 	country := m[x+1:y]
-	country = strings.Replace(country, "+", "", -1)
+	country = strings.Replace(country, "+", " ", -1)
 	country = strings.Replace(country, "%28", "(", -1)
 	country = strings.Replace(country, "%29", ")", -1)
 	m = m[y+1:]
 	x = strings.Index(m,"=")
 	y = strings.Index(m,"&")
 	state := m[x+1:y]
-	state = strings.Replace(state, "+", "", -1)
+	state = strings.Replace(state, "+", " ", -1)
 	state = strings.Replace(state, "%28", "(", -1)
 	state = strings.Replace(state, "%29", ")", -1)
 	m = m[y+1:]
 	x = strings.Index(m,"=")
 	y = strings.Index(m,"&")
 	name := m[x+1:y]
-	name = strings.Replace(name, "+", "", -1)
+	name = strings.Replace(name, "+", " ", -1)
 	name = strings.Replace(name, "%28", "(", -1)
 	name = strings.Replace(name, "%29", ")", -1)
 	m = m[y+1:]
 	x = strings.Index(m,"=")
 	city := m[x+1:]
-	city = strings.Replace(city, "+", "", -1)
+	city = strings.Replace(city, "+", " ", -1)
+	city = strings.Replace(city, "%28", "(", -1)
+	city = strings.Replace(city, "%29", ")", -1)
 	myquery := "SELECT name, id, country, state, city FROM communities WHERE privacy =0 AND name LIKE '%"+name+"%'  AND country LIKE '%"+country+"%' AND state LIKE '%"+state+"%' AND city LIKE '%"+city+"%'";
 	rows, err := db.Query(myquery)
 	if err != nil {
